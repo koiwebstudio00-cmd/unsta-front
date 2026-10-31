@@ -31,7 +31,12 @@ import {
   DialogDescription,
   DialogFooter,
 } from "./ui/dialog";
-import type { Profile as ProfileData, Proposal, Mutation } from "@/lib/types";
+import type {
+  Profile as ProfileData,
+  Proposal,
+  Mutation,
+  ConversationDetail,
+} from "@/lib/types";
 import {
   nameOf,
   initials,
@@ -46,12 +51,14 @@ import { EmptyState, Loading } from "./feedback";
 export function Profile({
   data,
   catalog,
+  conversation,
   operator,
   busy,
   act,
   loading,
 }: {
   data?: ProfileData;
+  conversation?: ConversationDetail;
   catalog: Proposal[];
   operator: boolean;
   busy: boolean;
@@ -111,7 +118,7 @@ export function Profile({
       />
     );
   return (
-    <div className="min-w-0 bg-card text-sm">
+    <div className="min-w-0 bg-card pb-6 text-sm">
       <div className="flex items-center justify-between border-b px-5 py-4">
         <h2 className="text-xs font-semibold">Información del interesado</h2>
         {operator && (
@@ -144,6 +151,27 @@ export function Profile({
         <Badge variant="secondary" className="mt-4">
           {stageLabel(data.contact.pipelineStage)}
         </Badge>
+        <div
+          className="mt-2 flex flex-wrap gap-2"
+          aria-label="Clasificación del interesado"
+        >
+          <Badge variant="outline">
+            {
+              {
+                bot: "Asistente IA",
+                esperando_humano: "Espera atención humana",
+                humano: "Tomado por el equipo",
+                cerrada: "Conversación cerrada",
+              }[conversation?.conversation.mode ?? "bot"]
+            }
+          </Badge>
+          {data.tasks.some((t) => t.status === "pendiente") && (
+            <Badge variant="outline">Seguimiento pendiente</Badge>
+          )}
+          {data.subscriptions.some((s) => s.status === "activa") && (
+            <Badge variant="outline">Espera apertura</Badge>
+          )}
+        </div>
         <dl className="mt-5 space-y-4 text-xs">
           <div className="flex gap-3">
             <Mail className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
@@ -174,9 +202,88 @@ export function Profile({
           </div>
         </dl>
       </div>
+      <section
+        className="space-y-3 border-t px-5 py-4"
+        aria-label="Contexto para el equipo"
+      >
+        <h3 className="text-xs font-semibold">Contexto para el equipo</h3>
+        <p className="text-[11px] text-muted-foreground">
+          Resumen automático de IA. Confirmá los datos antes de contactar.
+        </p>
+        <p className="text-[11px] text-muted-foreground" role="status">
+          {(conversation?.conversation.summaryThrough ?? 0) >=
+          Math.max(1, ...(conversation?.messages.filter((m) => m.role === "user").map((m) => m.sequence) ?? []))
+            ? "Actualizado con la última consulta."
+            : conversation?.conversation.mode === "bot" || conversation?.conversation.mode === "esperando_humano"
+              ? "Resumen pendiente de actualización. Los mensajes recientes están disponibles abajo."
+              : "Hay mensajes posteriores al resumen. Revisá la conversación antes de contactar."}
+        </p>
+        {(
+          [
+            ["hechos_declarados", "Lo que nos contó"],
+            ["intereses", "Intereses conversados"],
+            ["dudas_pendientes", "Dudas pendientes"],
+            ["proximo_paso", "Próximo paso"],
+          ] as const
+        ).map(([key, label]) => {
+          const raw = conversation?.conversation.summary?.[key];
+          const lines =
+            typeof raw === "string"
+              ? [raw]
+              : Array.isArray(raw)
+                ? raw.filter((v): v is string => typeof v === "string")
+                : [];
+          return lines.length ? (
+            <div key={key}>
+              <h4 className="mb-1 text-xs font-medium">{label}</h4>
+              <ul className="space-y-1 text-xs text-muted-foreground">
+                {lines.map((line, i) => (
+                  <li key={i} className="whitespace-pre-wrap break-words">
+                    {line}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null;
+        })}
+        {!Object.keys(conversation?.conversation.summary ?? {}).length && (
+          <p className="text-xs text-muted-foreground">
+            Todavía no hay un resumen generado. Podés consultar los mensajes
+            recientes y agregar una nota interna.
+          </p>
+        )}
+        {conversation?.cases
+          .filter((c) => c.status !== "cerrado" && c.status !== "resuelto")
+          .slice(-1)
+          .map((c) => (
+            <div key={c.id} className="rounded-lg border p-3 text-xs">
+              <strong>Derivación · {c.area}</strong>
+              <p className="mt-1 break-words">{c.reason}</p>
+              <p className="break-words text-muted-foreground">{c.summary}</p>
+            </div>
+          ))}
+        <details className="text-xs">
+          <summary className="cursor-pointer font-medium">
+            Últimas consultas del interesado
+          </summary>
+          <div className="mt-2 space-y-3">
+            {conversation?.messages
+              .filter((m) => m.role === "user")
+              .slice(-3)
+              .map((m) => (
+                <div key={m.id} className="rounded-lg bg-muted/60 p-3">
+                  <p className="whitespace-pre-wrap break-words">{m.text}</p>
+                  <time className="mt-1 block text-[10px] text-muted-foreground">
+                    {date(m.createdAt, true)}
+                  </time>
+                </div>
+              ))}
+          </div>
+        </details>
+      </section>
       <Accordion
         type="multiple"
-        defaultValue={["notes"]}
+        defaultValue={["interests", "notes", "tasks"]}
         className="border-t px-5"
       >
         <AccordionItem value="interests">
@@ -261,39 +368,54 @@ export function Profile({
             ))}
             {operator &&
               (noteForm ? (
-                <form
-                  onSubmit={(e) => void add(e, "notes")}
-                  className="space-y-2"
+                <Dialog
+                  open={noteForm}
+                  onOpenChange={(open) => {
+                    if (!busy) setNoteForm(open);
+                  }}
                 >
-                  <Label className="sr-only" htmlFor="internal-note">
-                    Nota interna
-                  </Label>
-                  <Textarea
-                    id="internal-note"
-                    name="text"
-                    required
-                    maxLength={6000}
-                    rows={3}
-                    autoFocus
-                    placeholder="Escribí una nota para el equipo…"
-                    disabled={busy}
-                  />
-                  <div className="flex gap-2">
-                    <Button size="sm" disabled={busy}>
-                      Guardar nota
-                    </Button>
-                    <Button
-                      type="button"
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label="Cancelar nota"
-                      disabled={busy}
-                      onClick={() => setNoteForm(false)}
+                  <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Agregar nota interna</DialogTitle>
+                      <DialogDescription>
+                        Registrá contexto útil para quien continúe la atención.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form
+                      onSubmit={(e) => void add(e, "notes")}
+                      className="space-y-2"
                     >
-                      <X />
-                    </Button>
-                  </div>
-                </form>
+                      <Label className="sr-only" htmlFor="internal-note">
+                        Nota interna
+                      </Label>
+                      <Textarea
+                        id="internal-note"
+                        name="text"
+                        required
+                        maxLength={6000}
+                        rows={3}
+                        autoFocus
+                        placeholder="Escribí una nota para el equipo…"
+                        disabled={busy}
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" disabled={busy}>
+                          Guardar nota
+                        </Button>
+                        <Button
+                          type="button"
+                          size="icon-sm"
+                          variant="ghost"
+                          aria-label="Cancelar nota"
+                          disabled={busy}
+                          onClick={() => setNoteForm(false)}
+                        >
+                          <X />
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               ) : (
                 <Button
                   variant="ghost"
@@ -348,43 +470,58 @@ export function Profile({
               ))}
             {operator &&
               (taskForm ? (
-                <form
-                  onSubmit={(e) => void add(e, "tasks")}
-                  className="space-y-3"
+                <Dialog
+                  open={taskForm}
+                  onOpenChange={(open) => {
+                    if (!busy) setTaskForm(open);
+                  }}
                 >
-                  <Label htmlFor="task-text">Recordatorio</Label>
-                  <Input
-                    id="task-text"
-                    name="text"
-                    required
-                    maxLength={500}
-                    placeholder="Ej. Consultar por la preinscripción"
-                    disabled={busy}
-                  />
-                  <Label htmlFor="task-due">Fecha</Label>
-                  <Input
-                    id="task-due"
-                    name="due"
-                    type="date"
-                    required
-                    disabled={busy}
-                  />
-                  <div className="flex gap-2">
-                    <Button size="sm" disabled={busy}>
-                      Crear tarea
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      type="button"
-                      aria-label="Cancelar tarea"
-                      disabled={busy}
-                      onClick={() => setTaskForm(false)}
+                  <DialogContent className="max-h-[85dvh] overflow-y-auto sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Nueva tarea</DialogTitle>
+                      <DialogDescription>
+                        Definí el próximo contacto y su fecha.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form
+                      onSubmit={(e) => void add(e, "tasks")}
+                      className="space-y-3"
                     >
-                      <X />
-                    </Button>
-                  </div>
-                </form>
+                      <Label htmlFor="task-text">Recordatorio</Label>
+                      <Input
+                        id="task-text"
+                        name="text"
+                        required
+                        maxLength={500}
+                        placeholder="Ej. Consultar por la preinscripción"
+                        disabled={busy}
+                      />
+                      <Label htmlFor="task-due">Fecha</Label>
+                      <Input
+                        id="task-due"
+                        name="due"
+                        type="date"
+                        required
+                        disabled={busy}
+                      />
+                      <div className="flex gap-2">
+                        <Button size="sm" disabled={busy}>
+                          Crear tarea
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          type="button"
+                          aria-label="Cancelar tarea"
+                          disabled={busy}
+                          onClick={() => setTaskForm(false)}
+                        >
+                          <X />
+                        </Button>
+                      </div>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               ) : (
                 <Button
                   variant="ghost"

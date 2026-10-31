@@ -1,0 +1,8 @@
+Ficha del interesado: contexto y formularios
+- Eliminada altura fija del contenido interior de acordeones que recortaba formularios dinámicos.
+- Notas y tareas en Dialog shadcn con scroll y altura máxima para pantallas pequeñas.
+- Etiquetas derivadas de etapa, modo bot/espera/equipo/cerrada, tareas pendientes y avisos activos.
+- Contexto: resumen IA existente (hechos, intereses, dudas y próximo paso), derivación y tres consultas recientes con fecha. El resumen es periódico y se presenta como orientativo, no como información actualizada en cada turno. No se generan notas IA nuevas ni se sobrescriben notas internas.
+- Se conserva carga por HTTP y protección de notas internas del contexto del agente.
+Verificación: 7 pruebas frontend aprobadas; build/TypeScript aprobados. Revisión React de estructura, claves, estados, accesibilidad y ausencia de nuevas peticiones innecesarias.
+Chrome: nota QA guardada, tarea QA con fecha 02/11/2026 creada, ambas presentes tras recarga; tarea completada al finalizar. Prueba sobre QA Captura · Inicio completo. Captura privada en .local/qa-ficha/tarea.png.

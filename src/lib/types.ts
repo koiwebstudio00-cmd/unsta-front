@@ -19,6 +19,7 @@ export type Conversation = {
   createdAt: string;
   updatedAt: string;
   summary: Record<string, unknown>;
+  summaryThrough: number;
 };
 export type Message = {
   id: string;

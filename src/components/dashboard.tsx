@@ -136,7 +136,7 @@ export function Dashboard({
   const conversation = useSWR<ConversationDetail>(
     selected ? `conversations/${selected}` : null,
     api,
-    { ...swrOptions, refreshInterval: view === "chat" ? 2500 : 0 },
+    { ...swrOptions, refreshInterval: selected ? 2500 : 0 },
   );
   const profile = useSWR<ProfileData>(
     conversation.data ? `contacts/${conversation.data.contact.id}` : null,
@@ -302,6 +302,7 @@ export function Dashboard({
     <Profile
       key={conversation.data?.contact.id ?? "empty"}
       data={profile.data}
+      conversation={conversation.data}
       catalog={proposals}
       operator={true}
       busy={busy}
