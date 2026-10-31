@@ -11,21 +11,28 @@ export async function POST(req: Request) {
     return errorResponse("Origen no autorizado", 403);
   try {
     const text = await req.text();
-    if (text.length > 256)
-      return errorResponse("Código de invitación inválido", 400);
+    if (text.length > 2048)
+      return errorResponse("Ingresá un email y una contraseña válidos", 400);
     let body;
     try {
       body = JSON.parse(text);
     } catch {
-      return errorResponse("Código de invitación inválido", 400);
+      return errorResponse("Ingresá un email y una contraseña válidos", 400);
     }
     if (
       !body ||
-      Object.keys(body).some((k) => k !== "token") ||
-      !sessionValue(body.token)
+      typeof body !== "object" ||
+      Array.isArray(body) ||
+      Object.keys(body).some((k) => !["email", "password"].includes(k)) ||
+      typeof body.email !== "string" ||
+      body.email.length > 254 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.email.trim()) ||
+      typeof body.password !== "string" ||
+      !body.password.length ||
+      body.password.length > 128
     )
-      return errorResponse("Código de invitación inválido", 400);
-    const upstream = await fetch(API_URL + "/v1/auth/accept-invite", {
+      return errorResponse("Ingresá un email y una contraseña válidos", 400);
+    const upstream = await fetch(API_URL + "/v1/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json", Origin: APP_ORIGIN },
       body: JSON.stringify(body),
@@ -49,7 +56,7 @@ export async function POST(req: Request) {
     const csrf = sessionValue(data.csrf_token);
     if (!session || !csrf)
       return errorResponse(
-        "No se pudo guardar la sesión. Solicitá una nueva invitación.",
+        "No se pudo guardar la sesión. Intentá ingresar nuevamente.",
         502,
       );
     const result = NextResponse.json(

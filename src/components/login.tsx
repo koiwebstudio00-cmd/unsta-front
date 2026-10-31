@@ -1,7 +1,8 @@
 "use client";
 import { useState, type FormEvent } from "react";
-import { ArrowRight, LoaderCircle } from "lucide-react";
+import { ArrowRight, LoaderCircle, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { ThemeSwitch } from "./theme-switch";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
@@ -16,20 +17,21 @@ import {
 } from "./ui/card";
 import { Alert, AlertDescription } from "./ui/alert";
 export function Login() {
+  const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false),
     [error, setError] = useState("");
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setBusy(true);
-    const token = String(
-      new FormData(e.currentTarget).get("token") ?? "",
-    ).trim();
+    const form = new FormData(e.currentTarget);
+    const email = String(form.get("email") ?? "").trim();
+    const password = String(form.get("password") ?? "");
     try {
       const r = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token }),
+        body: JSON.stringify({ email, password }),
       });
       const data = await r.json();
       if (!r.ok) throw new Error(data.error?.message ?? "No se pudo ingresar");
@@ -58,45 +60,85 @@ export function Login() {
               unoptimized
             />
           </div>
-          Atención y admisiones
+          <span className="text-center">
+            Universidad del Norte Santo Tomás de Aquino
+          </span>
+          <span className="font-normal text-muted-foreground">
+            Atención y admisiones
+          </span>
         </a>
         <Card>
           <CardHeader className="text-center">
-            <CardTitle className="text-xl">Ingresar a la demo</CardTitle>
+            <CardTitle className="text-xl">Ingresar al panel</CardTitle>
             <CardDescription>
-              Usá tu invitación para probar el asistente y gestionar interesados
-              en tu espacio.
+              Ingresá con tu email y contraseña para gestionar la atención y los
+              interesados.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form className="grid gap-4" onSubmit={submit}>
               <div className="grid gap-2">
-                <Label htmlFor="invite-token">Código de invitación</Label>
+                <Label htmlFor="login-email">Email</Label>
                 <Input
-                  id="invite-token"
-                  name="token"
-                  type="password"
-                  placeholder="Pegá tu código de acceso"
-                  autoComplete="off"
+                  id="login-email"
+                  name="email"
+                  type="email"
+                  autoComplete="username"
+                  placeholder="tu@email.com"
+                  maxLength={254}
                   required
-                  minLength={64}
-                  maxLength={64}
                   disabled={busy}
                 />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="login-password">Contraseña</Label>
+                <div className="relative">
+                  <Input
+                    id="login-password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    autoComplete="current-password"
+                    maxLength={128}
+                    required
+                    disabled={busy}
+                    className="pr-12"
+                  />
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="absolute right-1 top-1/2 -translate-y-1/2"
+                    aria-label={
+                      showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                    }
+                    aria-pressed={showPassword}
+                    aria-controls="login-password"
+                    disabled={busy}
+                    onClick={() => setShowPassword((v) => !v)}
+                  >
+                    {showPassword ? <EyeOff /> : <Eye />}
+                  </Button>
+                </div>
+              </div>
               {error ? (
-                <Alert variant="destructive">
+                <Alert variant="destructive" role="alert">
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               ) : null}
               <Button className="w-full" disabled={busy}>
                 {busy ? <LoaderCircle className="animate-spin" /> : null}
-                {busy ? "Ingresando…" : "Ingresar a la demo"}
+                {busy ? "Ingresando…" : "Ingresar al panel"}
                 <ArrowRight />
               </Button>
             </form>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex-col gap-3">
+            <Link
+              href="/solicitar-acceso"
+              className="text-sm font-medium text-primary dark:text-foreground underline-offset-4 hover:underline"
+            >
+              ¿No tenés una cuenta? Solicitar acceso
+            </Link>
             <p className="text-xs text-muted-foreground">
               Usá datos ficticios. Esta demo no registra inscripciones ni envía
               consultas a la universidad.
@@ -106,8 +148,7 @@ export function Login() {
         <p className="text-center text-xs text-muted-foreground">
           Central · Yerba Buena
           <br />
-          Si tu invitación venció, solicitá un nuevo acceso al responsable de la
-          demo.
+          Panel de atención UNSTA
         </p>
       </div>
     </main>

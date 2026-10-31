@@ -22,13 +22,13 @@ npm run build
 npm start
 ```
 
-Para crear acceso, ejecutar desde el repositorio del BACKEND, después de compilarlo:
+Para crear una cuenta, ejecutar desde el repositorio del BACKEND, después de migrarlo y compilarlo:
 
 ```sh
-npm run invite -- evaluador@example.test
+npm run account:create -- tu-correo@tu-dominio.com
 ```
 
-Abrir el archivo privado indicado por el comando y copiar su propiedad `token` al formulario de invitación. No enviar ese archivo al repositorio. La invitación es de un solo uso y vence en 24 horas; la sesión dura siete días. Todas las invitaciones entran al espacio compartido UNSTA; cada navegador conserva su sesión, pero accede a los mismos datos. El acceso actual es para evaluadores que prueban ambos roles; no es un portal público de alumnos.
+Copiar las credenciales del archivo privado indicado y guardarlas en un gestor de contraseñas. Ingresar con email y contraseña en `/ingresar`; se pueden reutilizar. La sesión dura siete días y todos los usuarios comparten los datos de UNSTA. `/solicitar-acceso` muestra el contacto de Koi sin enviar correos ni crear cuentas automáticamente.
 
 ## Recorrido disponible
 
@@ -59,7 +59,7 @@ La vista se adapta a escritorio y móvil. El chat consulta cambios cada 2,5 segu
 
 ## Sesión y frontera con el agente
 
-`/api/auth/login` intercambia la invitación con el backend. Guarda sesión y CSRF en cookies HttpOnly; devuelve solo `{ok:true}` al navegador. Las mutaciones requieren el origen exacto y el servidor añade el token CSRF. El proxy `/api/demo/*` permite únicamente rutas de evaluador conocidas, con método e identificadores válidos. No expone `/v1/agent`, credenciales de servicio ni URLs arbitrarias. Las respuestas autenticadas no se almacenan en caché.
+`/api/auth/login` valida las credenciales con `/v1/auth/login` del backend. Guarda sesión y CSRF en cookies HttpOnly; devuelve solo `{ok:true}` al navegador. Las mutaciones requieren el origen exacto y el servidor añade el token CSRF. El proxy `/api/demo/*` permite únicamente rutas de evaluador conocidas, con método e identificadores válidos. No expone `/v1/agent`, credenciales de servicio ni URLs arbitrarias. Las respuestas autenticadas no se almacenan en caché.
 
 Las notas internas se muestran solamente en la vista Equipo. Ambos roles pertenecen al mismo evaluador: cambiar de vista no es una barrera de permisos entre dos cuentas diferentes. El aislamiento real es entre espacios y se aplica en el backend/PostgreSQL.
 

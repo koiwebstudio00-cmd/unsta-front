@@ -55,10 +55,10 @@ La separación conserva diseño, funciones, contratos y acceso compartido instit
 
 ## Acceso al panel desplegado
 
-Abrir el dominio HTTPS asignado a este frontend. El formulario pide un código de invitación, no una contraseña.
+Abrir el dominio HTTPS del frontend e ingresar con email y contraseña. El formulario incluye mostrar/ocultar contraseña y un enlace a `/solicitar-acceso`, con contacto de Koi: koi.webstudio00@gmail.com.
 
-Generar el código en la terminal del contenedor del backend en Dokploy, desde `/app`, con `npm run invite -- tu-correo@tu-dominio.com`. El comando informa la ruta de un archivo privado `.local/invite-….local.json`: copiar su propiedad `token` en «Código de invitación». No se envía correo ni se verifica la titularidad del email.
+Una sola vez por persona, crear la cuenta en la terminal del backend en Dokploy, desde `/app`, con `npm run account:create -- tu-correo@tu-dominio.com`. Requiere aplicar las migraciones del backend. El comando informa un archivo privado `.local/account-….local.json` con las credenciales iniciales; guardarlas en un gestor de contraseñas. No se envía correo automáticamente.
 
-Cada código es de un solo uso y vence en 24 horas; la sesión dura siete días. Para otro navegador o un nuevo ingreso después de cerrar sesión o de su vencimiento, generar otra invitación. Todos los evaluadores ven los datos del mismo espacio UNSTA. No hay login con contraseña/SSO, recuperación ni roles diferenciados todavía.
+Las credenciales son reutilizables y la sesión dura siete días. Todos los usuarios acceden al mismo espacio UNSTA. Aún no hay roles diferenciados ni recuperación/cambio de contraseña autoservicio. Para ayuda se ofrece el contacto de Koi.
 
-`APP_ORIGIN` debe coincidir con `PANEL_ORIGIN` del backend, y `COOKIE_SECURE=true` en ambos. Crear invitaciones sobre la base de producción; desplegar los repositorios no migra automáticamente los datos locales. La guía completa de operación está en el README del repositorio backend.
+`APP_ORIGIN` debe coincidir con `PANEL_ORIGIN` del backend y `COOKIE_SECURE=true` en ambos. El nuevo login utiliza `/v1/auth/login`; el navegador nunca recibe hashes ni credenciales de servicio. Desplegar los repositorios no migra automáticamente los leads o las cuentas locales. Ver la guía completa en el README del backend.

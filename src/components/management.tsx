@@ -348,7 +348,7 @@ export function StatusView({
         <div className="flex items-center justify-between gap-4 border-t pt-4 text-sm [&_p]:mt-1 [&_p]:text-muted-foreground">
           <div>
             <strong>Panel y base de datos</strong>
-            <p>Acceso por invitación, conversaciones y seguimiento.</p>
+            <p>Acceso con email y contraseña, conversaciones y seguimiento.</p>
           </div>
           <Badge variant="secondary">Disponible</Badge>
         </div>
