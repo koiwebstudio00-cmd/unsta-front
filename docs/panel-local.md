@@ -22,10 +22,10 @@ npm run build
 npm start
 ```
 
-Para crear acceso:
+Para crear acceso, ejecutar desde el repositorio del BACKEND, después de compilarlo:
 
 ```sh
-npm run demo:invite -- evaluador@example.test
+npm run invite -- evaluador@example.test
 ```
 
 Abrir el archivo privado indicado por el comando y copiar su propiedad `token` al formulario de invitación. No enviar ese archivo al repositorio. La invitación es de un solo uso y vence en 24 horas; la sesión dura siete días. Todas las invitaciones entran al espacio compartido UNSTA; cada navegador conserva su sesión, pero accede a los mismos datos. El acceso actual es para evaluadores que prueban ambos roles; no es un portal público de alumnos.

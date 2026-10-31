@@ -52,3 +52,13 @@ El backend se administra en su repositorio separado. El despliegue del frontend 
 La auditoría de PostgreSQL antes ubicada en `scripts/verify-data.ts` ahora pertenece a `backend/scripts/audit/verify-data.ts`. No hay imports ni dependencias de archivos del backend en este repositorio.
 
 La separación conserva diseño, funciones, contratos y acceso compartido institucional. Detalle de validación en `docs/SEPARACION-2026-10-31.txt`.
+
+## Acceso al panel desplegado
+
+Abrir el dominio HTTPS asignado a este frontend. El formulario pide un código de invitación, no una contraseña.
+
+Generar el código en la terminal del contenedor del backend en Dokploy, desde `/app`, con `npm run invite -- tu-correo@tu-dominio.com`. El comando informa la ruta de un archivo privado `.local/invite-….local.json`: copiar su propiedad `token` en «Código de invitación». No se envía correo ni se verifica la titularidad del email.
+
+Cada código es de un solo uso y vence en 24 horas; la sesión dura siete días. Para otro navegador o un nuevo ingreso después de cerrar sesión o de su vencimiento, generar otra invitación. Todos los evaluadores ven los datos del mismo espacio UNSTA. No hay login con contraseña/SSO, recuperación ni roles diferenciados todavía.
+
+`APP_ORIGIN` debe coincidir con `PANEL_ORIGIN` del backend, y `COOKIE_SECURE=true` en ambos. Crear invitaciones sobre la base de producción; desplegar los repositorios no migra automáticamente los datos locales. La guía completa de operación está en el README del repositorio backend.
