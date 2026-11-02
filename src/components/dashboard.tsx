@@ -13,6 +13,7 @@ import {
   ArrowLeft,
   PanelRight,
   LoaderCircle,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { api, swrOptions } from "@/lib/client-api";
@@ -51,8 +52,15 @@ import {
 } from "./ui/sheet";
 import { Toaster } from "./ui/sonner";
 import { ThemeSwitch } from "./theme-switch";
+import { ProjectDescription } from "./project-description";
 import { cn } from "@/lib/utils";
 const views = {
+  project: {
+    label: "Descripción del proyecto",
+    icon: FileText,
+    description:
+      "Qué se desarrolló, cómo funciona y qué información tiene disponible.",
+  },
   home: {
     label: "Inicio",
     icon: House,
@@ -319,7 +327,7 @@ export function Dashboard({
       <AppSidebar
         variant="inset"
         items={Object.entries(views)
-          .filter(([id]) => id !== "status")
+          .filter(([id]) => id !== "status" && id !== "project")
           .map(([id, v]) => ({
             title: v.label,
             icon: <v.icon />,
@@ -349,6 +357,17 @@ export function Dashboard({
           <Badge variant="outline" className="hidden sm:inline-flex">
             Demo
           </Badge>
+          <Button
+            variant={view === "project" ? "secondary" : "ghost"}
+            size="sm"
+            className="shrink-0"
+            aria-label="Descripción del proyecto"
+            aria-current={view === "project" ? "page" : undefined}
+            onClick={() => navigate("project")}
+          >
+            <FileText aria-hidden="true" />
+            <span className="hidden sm:inline">Proyecto</span>
+          </Button>
           <div className="ml-auto sm:ml-0">
             <ThemeSwitch />
           </div>
@@ -483,14 +502,16 @@ export function Dashboard({
                   {views[view].description}
                 </p>
               </div>
-              {view !== "status" && (
+              {view !== "status" && view !== "project" && (
                 <Button onClick={() => setNewLead(true)}>
                   <Plus />
                   Nuevo interesado
                 </Button>
               )}
             </div>
-            {view === "home" ? (
+            {view === "project" ? (
+              <ProjectDescription />
+            ) : view === "home" ? (
               directory.isLoading || followup.isLoading ? (
                 <Loading />
               ) : (

@@ -1,6 +1,11 @@
 // Shared by server metadata and the panel's query-string navigation.
 // Titles never contain names, emails or conversation IDs.
 export const pageMetadata = {
+  project: {
+    title: "Descripción del agente y la plataforma | UNSTA Demo",
+    description:
+      "Conocé las funcionalidades, los seguimientos y el conocimiento cargado en el proyecto UNSTA. Exportá la descripción en Markdown.",
+  },
   home: {
     title: "Resumen de admisiones | UNSTA Demo",
     description:

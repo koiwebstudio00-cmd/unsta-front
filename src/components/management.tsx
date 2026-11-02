@@ -80,6 +80,50 @@ export function FollowupView({
       <div className="grid items-start gap-4 lg:grid-cols-2">
         {section === "tasks" ? (
           <>
+            <Card className="gap-4 p-4 lg:col-span-2">
+              <h2 className="font-semibold">Seguimientos automáticos</h2>
+              <p className="text-sm text-muted-foreground">
+                Dos mensajes en el chat, separados por 2 horas sin respuesta. Si
+                pasan otras 2 horas después del segundo, el lead queda Sin
+                interés. Una respuesta reinicia el ciclo; la atención humana lo
+                detiene. El mensaje se adapta al tema de la conversación,
+                incluso si el lead solo saludó.
+              </p>
+              {!(data.automations ?? []).some((item) =>
+                ["scheduled", "exhausted"].includes(item.status),
+              ) ? (
+                <p className="text-sm text-muted-foreground">
+                  No hay seguimientos automáticos programados.
+                </p>
+              ) : (
+                (data.automations ?? [])
+                  .filter((item) =>
+                    ["scheduled", "exhausted"].includes(item.status),
+                  )
+                  .map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex flex-wrap items-center justify-between gap-3 border-t pt-3 text-sm"
+                    >
+                      <div>
+                        <strong>{contact(item.contactId)}</strong>
+                        <p className="mt-1 text-muted-foreground">
+                          {item.status === "exhausted"
+                            ? "Ciclo finalizado sin respuesta. Se conserva el estado si lo fijó el equipo."
+                            : `${item.sentCount}/2 mensajes enviados · ${item.sentCount === 2 ? "Evaluar cierre" : "Próximo mensaje"}: ${item.dueAt ? date(item.dueAt, true) : "Pendiente"}`}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onConversation(item.conversationId)}
+                      >
+                        Abrir chat
+                      </Button>
+                    </div>
+                  ))
+              )}
+            </Card>
             <Card className="gap-4 p-4 [&>h2]:font-semibold [&>p]:text-sm [&>p]:text-muted-foreground">
               <div className="flex items-center gap-2 [&>h2]:font-semibold [&>svg]:size-4 [&>[data-slot=badge]]:ml-auto">
                 <CalendarDays size={19} />

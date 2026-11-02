@@ -2,6 +2,29 @@
 
 Panel de atención y admisiones. Repositorio independiente con Next.js, React y shadcn. No necesita una copia del backend para instalar, probar o compilar.
 
+## Entrega del 2 de noviembre de 2026
+
+Incluye la vista de seguimientos automáticos con contador y fecha/hora del próximo envío, y la página **Proyecto** junto al badge **Demo**, con descripción funcional y exportación Markdown. La descripción cubre agente, CRM, conocimiento 1.1.0, datos persistidos y límites de la demo.
+
+Antes del próximo deploy, configurar `API_URL` con el backend accesible desde el servidor, `APP_ORIGIN` con el dominio HTTPS del panel y `COOKIE_SECURE=true`. El backend debe tener aplicada la migración de seguimientos. Ejecutar `npm run docs:build`, `npm test`, `npm run typecheck` y `npm run build`; después verificar login, chat, Seguimiento, acceso directo `/?view=project` y descarga `.md` en el despliegue. El push no copia datos, cuentas ni variables locales. Esta entrega no realiza el despliegue.
+
+## Descripción del proyecto y documentación
+
+La descripción funcional está disponible dentro del panel en `/?view=project`, con el botón **Proyecto** del encabezado, junto al badge **Demo**. Incluye agente, CRM, reglas de seguimiento, resumen del conocimiento y límites actuales. **Exportar .md** descarga el contenido completo en UTF-8 como `unsta-descripcion-del-proyecto.md`, sin datos personales del CRM.
+
+La fuente editorial única es `src/lib/project-description.ts`: alimenta página y exportación. Su inventario es una referencia fechada (conocimiento 1.1.0, 40 registros, 19 fuentes, 12 propuestas), no un contador en vivo. Actualizarla cuando cambie el alcance o el conocimiento y ejecutar `npm run docs:build` para regenerar [la copia documental](docs/descripcion-proyecto.md). No importa archivos del backend ni necesita PostgreSQL. Las pruebas verifican que esa copia coincida con la exportación.
+
+## Funcionalidades actuales
+
+- Inicio con indicadores, etapas y demanda por propuesta, período y sede.
+- CRM con tablero/listado, edición de datos, intereses, notas y tareas.
+- Chat con simulación de consultas, respuestas del agente/equipo, fuentes y resumen de contexto.
+- Seguimiento con tareas, derivaciones y ciclos automáticos: primer mensaje a las 2 horas, segundo dos horas después y evaluación de cierre otras dos horas después. El contenido se adapta al tema y una respuesta reinicia el ciclo.
+- Avisos de apertura de cursos simulados, con consentimiento, dentro del panel.
+- Vista de estado y conocimiento; descripción del proyecto exportable.
+
+El backend programa y persiste los seguimientos. La intervención humana, el cierre y las condiciones de exclusión los detienen; las etapas corregidas manualmente se respetan. Los mensajes se publican en el panel, sin entrega por WhatsApp/email. Se muestra la fecha y hora de próximos envíos en la zona de Tucumán.
+
 ## Desarrollo
 
 Node 24 (ver `.nvmrc`). Ejecutar desde esta carpeta:

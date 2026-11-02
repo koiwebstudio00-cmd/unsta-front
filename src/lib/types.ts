@@ -122,6 +122,15 @@ export type Profile = {
   notices: Notice[];
 };
 export type Followup = {
+  automations?: {
+    id: string;
+    contactId: string;
+    conversationId: string;
+    status: string;
+    sentCount: number;
+    dueAt: string | null;
+    reason: string | null;
+  }[];
   tasks: Task[];
   subscriptions: Subscription[];
   events: Opening[];

@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "docs:build": "node --import tsx scripts/export-project-description.mjs",
     "dev": "next dev --hostname localhost --port 3000",
     "build": "next build --webpack && node scripts/prepare-standalone.mjs",
     "start": "node --env-file-if-exists=.env.local .next/standalone/server.js",
